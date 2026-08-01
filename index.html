@@ -11,18 +11,23 @@
 <link rel="icon" type="image/png" href="assets/icon-256.png">
 <style>
 :root {
-  --bg: #0b1220;
-  --bg-alt: #0f1a2e;
-  --panel: #13213a;
-  --panel-border: #22375c;
-  --text: #d8e2f2;
-  --text-dim: #8aa0c2;
-  --navy: #1b3a5f;
+  --bg: #0a111f;
+  --bg-alt: #0d1627;
+  --panel: #121f37;
+  --panel-hover: #162643;
+  --border: #1f3253;
+  --border-strong: #2b4470;
+  --text: #dce6f5;
+  --text-dim: #8ba1c4;
+  --text-faint: #5c718f;
   --teal: #2dd4bf;
   --teal-dim: #1a8f80;
+  --teal-glow: rgba(45, 212, 191, 0.12);
   --orange: #e8912d;
-  --mono: "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+  --green: #9ece6a;
+  --mono: "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Code", monospace;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 14px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -30,194 +35,292 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 a { color: var(--teal); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.container { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+.container { max-width: 1020px; margin: 0 auto; padding: 0 28px; }
+section, header { scroll-margin-top: 72px; }
+code.inline {
+  font-family: var(--mono); font-size: 0.85em;
+  background: var(--teal-glow); color: var(--teal);
+  padding: 2px 7px; border-radius: 6px;
+}
 
-/* Nav */
+/* ---------- Nav ---------- */
 nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(11, 18, 32, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--panel-border);
+  background: rgba(10, 17, 31, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
 }
 .nav-inner {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 24px; max-width: 1060px; margin: 0 auto;
+  padding: 13px 28px; max-width: 1020px; margin: 0 auto;
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: var(--text); }
-.brand img { width: 32px; height: 32px; border-radius: 7px; }
-.nav-links { display: flex; gap: 24px; align-items: center; font-size: 0.92rem; }
-.nav-links a { color: var(--text-dim); }
-.nav-links a:hover { color: var(--teal); text-decoration: none; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.06rem; color: var(--text); }
+.brand img { width: 30px; height: 30px; border-radius: 7px; }
+.nav-links { display: flex; gap: 26px; align-items: center; font-size: 0.9rem; }
+.nav-links a { color: var(--text-dim); transition: color 0.15s; }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
 .nav-links .gh-btn {
-  background: var(--panel); border: 1px solid var(--panel-border);
-  padding: 6px 14px; border-radius: 8px; color: var(--text);
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 7px 15px; border-radius: 9px; color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.nav-links .gh-btn:hover { border-color: var(--teal); }
+.nav-links .gh-btn:hover { border-color: var(--teal-dim); box-shadow: 0 0 16px rgba(45,212,191,0.15); }
+.gh-btn svg { width: 15px; height: 15px; fill: currentColor; }
 
-/* Hero */
-header { padding: 72px 0 40px; text-align: center; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45, 212, 191, 0.10), transparent); }
-.hero-icon { width: 96px; height: 96px; margin-bottom: 20px; border-radius: 22px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
-h1 { font-size: clamp(2.2rem, 5.5vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; }
-h1 .accent { color: var(--teal); }
-.tagline { font-size: clamp(1.05rem, 2.5vw, 1.3rem); color: var(--text-dim); margin: 14px auto 0; max-width: 640px; }
-.tagline strong { color: var(--text); }
-.badges { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
-.badge {
-  font-family: var(--mono); font-size: 0.78rem; padding: 4px 12px;
-  border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim);
+/* ---------- Hero ---------- */
+header { position: relative; padding: 92px 0 0; text-align: center; overflow: hidden; }
+.glow {
+  position: absolute; pointer-events: none; border-radius: 50%; filter: blur(70px);
+  animation: drift 14s ease-in-out infinite alternate;
 }
-.badge.version { color: var(--orange); border-color: rgba(232, 145, 45, 0.4); }
-.badge.rust { color: var(--teal); border-color: rgba(45, 212, 191, 0.4); }
+.glow.a { width: 560px; height: 380px; left: 50%; top: -160px; transform: translateX(-50%); background: rgba(45, 212, 191, 0.14); }
+.glow.b { width: 380px; height: 300px; right: -120px; top: 60px; background: rgba(232, 145, 45, 0.07); animation-delay: -7s; }
+@keyframes drift {
+  from { transform: translate(-50%, 0) scale(1); }
+  to   { transform: translate(-46%, 24px) scale(1.12); }
+}
+.glow.b { animation-name: drift-b; }
+@keyframes drift-b {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-40px, 30px) scale(1.15); }
+}
+.hero-icon {
+  width: 92px; height: 92px; margin-bottom: 24px; border-radius: 21px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+h1 {
+  font-size: clamp(2.3rem, 5.5vw, 3.6rem); font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1.12; position: relative;
+}
+h1 .accent {
+  background: linear-gradient(100deg, var(--teal), #5eead4, var(--orange), var(--teal));
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 7s linear infinite;
+}
+@keyframes shimmer { to { background-position: 300% 0; } }
+.tagline {
+  font-size: clamp(1.05rem, 2.4vw, 1.2rem); color: var(--text-dim);
+  margin: 18px auto 0; max-width: 560px;
+}
+.tagline strong { color: var(--text); font-weight: 600; }
+.type-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 22px; padding: 9px 18px; border-radius: 999px;
+  background: rgba(8, 13, 23, 0.8); border: 1px solid var(--border-strong);
+  font-family: var(--mono); font-size: 0.92rem;
+  box-shadow: 0 0 24px rgba(45,212,191,0.08) inset, 0 4px 20px rgba(0,0,0,0.3);
+}
+.type-chip .p { color: var(--teal); }
+.type-chip .cursor {
+  display: inline-block; width: 8px; height: 1.15em; background: var(--teal);
+  vertical-align: text-bottom; animation: blink 1s steps(1) infinite; margin-left: 1px;
+}
+@keyframes blink { 50% { opacity: 0; } }
 .cta-row { display: flex; gap: 14px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
 .btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 26px; border-radius: 10px; font-weight: 600; font-size: 1rem;
-  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative; display: inline-flex; align-items: center; gap: 9px;
+  padding: 13px 28px; border-radius: 11px; font-weight: 600; font-size: 0.98rem;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  overflow: hidden;
 }
-.btn:hover { text-decoration: none; transform: translateY(-1px); }
-.btn-primary { background: var(--teal); color: #06251f; box-shadow: 0 4px 20px rgba(45, 212, 191, 0.3); }
-.btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--panel-border); }
-.btn-secondary:hover { border-color: var(--teal); }
-
-/* Screenshot */
-.shot { padding: 44px 0 10px; }
-.shot img {
-  width: 100%; border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+.btn:hover { text-decoration: none; transform: translateY(-2px); }
+.btn-primary { background: var(--teal); color: #04231d; box-shadow: 0 4px 24px rgba(45, 212, 191, 0.28); }
+.btn-primary:hover { box-shadow: 0 8px 36px rgba(45, 212, 191, 0.45); }
+.btn-primary::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: sheen 4.5s ease-in-out infinite;
 }
-.shot figcaption { text-align: center; color: var(--text-dim); font-size: 0.88rem; margin-top: 14px; }
+@keyframes sheen { 12% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
+.btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border-strong); }
+.btn-secondary:hover { border-color: var(--teal-dim); box-shadow: 0 0 20px rgba(45,212,191,0.12); }
+.hero-meta {
+  display: flex; gap: 8px 22px; justify-content: center; margin-top: 22px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 0.78rem; color: var(--text-faint);
+}
+.hero-meta span::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--teal-dim); margin-right: 8px; vertical-align: 2px; }
 
-/* Sections */
-section { padding: 72px 0; }
-section.alt { background: var(--bg-alt); }
-h2 { font-size: 1.9rem; font-weight: 750; letter-spacing: -0.01em; margin-bottom: 12px; }
-.section-lead { color: var(--text-dim); max-width: 700px; margin-bottom: 40px; }
-.section-lead strong { color: var(--text); }
+/* hero load-in stagger */
+.hero-in { opacity: 0; transform: translateY(16px); animation: rise 0.7s ease forwards; }
+.hero-in.d1 { animation-delay: 0.05s; } .hero-in.d2 { animation-delay: 0.15s; }
+.hero-in.d3 { animation-delay: 0.25s; } .hero-in.d4 { animation-delay: 0.35s; }
+.hero-in.d5 { animation-delay: 0.45s; } .hero-in.d6 { animation-delay: 0.55s; }
+@keyframes rise { to { opacity: 1; transform: none; } }
 
-/* Why cards */
-.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
-.why-card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 24px; }
-.why-card h3 { font-size: 1.05rem; margin-bottom: 8px; }
-.why-card p { color: var(--text-dim); font-size: 0.93rem; }
-.why-card .no { color: var(--orange); font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 10px; }
-.why-card .yes { color: var(--teal); font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 10px; }
+/* ---------- Screenshot ---------- */
+.shot { padding: 52px 0 76px; }
+.shot .frame {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 30px 90px rgba(0,0,0,0.6), 0 0 60px rgba(45,212,191,0.07);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.shot .frame:hover { transform: translateY(-4px) scale(1.005); box-shadow: 0 40px 110px rgba(0,0,0,0.65), 0 0 80px rgba(45,212,191,0.12); }
+.shot img { width: 100%; display: block; }
+.shot figcaption { text-align: center; color: var(--text-faint); font-size: 0.86rem; margin-top: 18px; }
 
-/* Features */
-.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+/* ---------- Sections ---------- */
+section { padding: 84px 0; }
+section.alt { background: var(--bg-alt); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.eyebrow {
+  font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal);
+  display: block; margin-bottom: 12px;
+}
+h2 { font-size: clamp(1.6rem, 3.5vw, 2rem); font-weight: 750; letter-spacing: -0.02em; margin-bottom: 14px; }
+.section-lead { color: var(--text-dim); max-width: 660px; margin-bottom: 40px; font-size: 1.02rem; }
+.section-lead strong { color: var(--text); font-weight: 600; }
+
+/* ---------- Reveal on scroll ---------- */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+/* ---------- Features ---------- */
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .feat {
-  background: var(--panel); border: 1px solid var(--panel-border);
-  border-radius: 12px; padding: 22px; transition: border-color 0.15s, transform 0.15s;
+  position: relative; background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 26px 24px;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
 }
-.feat:hover { border-color: var(--teal-dim); transform: translateY(-2px); }
-.feat .icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
-.feat h3 { font-size: 1rem; margin-bottom: 6px; }
-.feat p { color: var(--text-dim); font-size: 0.88rem; }
-.feat code { font-family: var(--mono); font-size: 0.82em; background: rgba(45,212,191,0.1); color: var(--teal); padding: 1px 5px; border-radius: 4px; }
+.feat:hover {
+  border-color: var(--teal-dim); transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35), 0 0 24px rgba(45,212,191,0.08);
+}
+.feat .icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: var(--teal-glow); border: 1px solid rgba(45, 212, 191, 0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; margin-bottom: 15px;
+  transition: transform 0.25s;
+}
+.feat:hover .icon { transform: scale(1.12) rotate(-4deg); }
+.feat h3 { font-size: 1rem; margin-bottom: 6px; font-weight: 650; }
+.feat p { color: var(--text-dim); font-size: 0.88rem; line-height: 1.6; }
+.feat code { font-family: var(--mono); font-size: 0.82em; background: var(--teal-glow); color: var(--teal); padding: 1px 5px; border-radius: 4px; }
 
-/* Terminal code blocks */
+/* ---------- Terminal blocks ---------- */
 .term {
-  background: #0a0f1a; border: 1px solid var(--panel-border); border-radius: 12px;
-  overflow: hidden; margin: 20px 0; font-family: var(--mono); font-size: 0.88rem;
+  background: #080d17; border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin: 20px 0; font-family: var(--mono); font-size: 0.87rem;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
+.term:hover { border-color: var(--border-strong); box-shadow: 0 0 30px rgba(45,212,191,0.06); }
 .term-bar {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--panel); padding: 10px 14px; border-bottom: 1px solid var(--panel-border);
+  display: flex; align-items: center; gap: 7px;
+  background: var(--panel); padding: 10px 16px; border-bottom: 1px solid var(--border);
 }
 .dot { width: 11px; height: 11px; border-radius: 50%; }
 .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
-.term-title { color: var(--text-dim); font-size: 0.78rem; margin-left: 8px; }
+.term-title { color: var(--text-faint); font-size: 0.76rem; margin-left: 8px; }
 .term-bar .copy {
-  margin-left: auto; background: none; border: 1px solid var(--panel-border); color: var(--text-dim);
-  font-family: var(--sans); font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; cursor: pointer;
+  margin-left: auto; background: none; border: 1px solid var(--border); color: var(--text-dim);
+  font-family: var(--sans); font-size: 0.74rem; padding: 4px 12px; border-radius: 7px; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
 }
-.term-bar .copy:hover { color: var(--teal); border-color: var(--teal); }
-.term pre { padding: 18px; overflow-x: auto; line-height: 1.7; }
-.term .p { color: var(--teal); }
-.term .c { color: #5c718f; }
+.term-bar .copy:hover { color: var(--teal); border-color: var(--teal-dim); }
+.term pre { padding: 20px; overflow-x: auto; line-height: 1.75; }
+.term .p { color: var(--teal); user-select: none; }
+.term .c { color: var(--text-faint); }
 .term .k { color: var(--orange); }
-.term .s { color: #9ece6a; }
+.term .s { color: var(--green); }
 
-/* Install layout */
-.install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
-.install-note { color: var(--text-dim); font-size: 0.88rem; margin-top: 8px; }
-
-/* Download cards */
-.download-cards { display: flex; gap: 14px; flex-wrap: wrap; }
-.dl-card {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px;
-  padding: 16px 22px; text-decoration: none; flex: 1; min-width: 200px;
-  transition: border-color 0.15s, transform 0.12s;
+/* ---------- Download ---------- */
+.dl-hero {
+  display: flex; align-items: center; gap: 18px;
+  background: linear-gradient(180deg, rgba(45,212,191,0.09), var(--panel) 70%);
+  border: 1px solid rgba(45, 212, 191, 0.4); border-radius: var(--radius);
+  padding: 22px 26px; text-decoration: none; margin-bottom: 14px;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
 }
-.dl-card:hover { border-color: var(--teal-dim); transform: translateY(-1px); text-decoration: none; }
-.dl-card.primary { border-color: rgba(45, 212, 191, 0.5); background: rgba(45, 212, 191, 0.06); }
-.dl-card.primary:hover { border-color: var(--teal); }
-.dl-icon { font-size: 1.4rem; flex-shrink: 0; }
-.dl-info { display: flex; flex-direction: column; gap: 2px; }
-.dl-title { color: var(--text); font-weight: 600; font-size: 0.95rem; }
-.dl-sub { color: var(--text-dim); font-size: 0.8rem; }
+.dl-hero:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(45,212,191,0.12); text-decoration: none; }
+.dl-hero .dl-icon {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  background: var(--teal-glow); color: var(--teal);
+  display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+}
+.dl-hero .dl-title { color: var(--text); font-weight: 650; font-size: 1.02rem; display: block; }
+.dl-hero .dl-sub { color: var(--text-dim); font-size: 0.82rem; }
+.dl-alt { color: var(--text-dim); font-size: 0.88rem; }
+.install-note { color: var(--text-dim); font-size: 0.88rem; margin-top: 16px; }
+.install-note strong { color: var(--text); }
+details.src { margin-top: 26px; }
+details.src summary {
+  cursor: pointer; color: var(--text-dim); font-size: 0.92rem; font-weight: 600;
+  list-style: none; display: inline-flex; align-items: center; gap: 8px;
+  transition: color 0.15s;
+}
+details.src summary:hover { color: var(--teal); }
+details.src summary::before { content: "▸"; color: var(--teal); transition: transform 0.2s; }
+details.src[open] summary::before { transform: rotate(90deg); }
 
-/* Usage steps */
-.steps { counter-reset: step; display: grid; gap: 0; margin-top: 30px; }
-.step { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--panel-border); }
-.step:last-child { border-bottom: none; }
+/* ---------- Steps ---------- */
+.steps { counter-reset: step; display: grid; gap: 14px; }
+.step {
+  display: flex; gap: 18px; align-items: flex-start;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.step:hover { border-color: var(--teal-dim); transform: translateX(4px); }
 .step-num {
   counter-increment: step; flex-shrink: 0;
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--panel); border: 1px solid var(--teal-dim);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--teal-glow); border: 1px solid rgba(45, 212, 191, 0.3);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); color: var(--teal); font-weight: 700; font-size: 0.9rem;
+  font-family: var(--mono); color: var(--teal); font-weight: 700; font-size: 0.85rem;
 }
 .step-num::before { content: counter(step); }
-.step p { color: var(--text-dim); padding-top: 5px; }
+.step p { color: var(--text-dim); padding-top: 3px; font-size: 0.94rem; }
 .step p strong { color: var(--text); }
-.step kbd, td kbd {
-  font-family: var(--mono); font-size: 0.8em; background: var(--panel);
-  border: 1px solid var(--panel-border); border-bottom-width: 2px;
-  border-radius: 5px; padding: 2px 7px; color: var(--text);
+
+/* ---------- Stats strip ---------- */
+.stats { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 44px; }
+.stat {
+  flex: 1; min-width: 140px; text-align: center; padding: 22px 12px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  transition: border-color 0.2s, transform 0.2s;
 }
+.stat:hover { border-color: var(--teal-dim); transform: translateY(-3px); }
+.stat .num { font-size: 1.8rem; font-weight: 800; color: var(--teal); font-family: var(--mono); letter-spacing: -0.02em; }
+.stat .lbl { color: var(--text-dim); font-size: 0.8rem; margin-top: 2px; }
 
-/* Keys table */
-table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 0.92rem; }
-th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--panel-border); }
-th { color: var(--teal); font-family: var(--mono); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; }
-td:first-child { font-weight: 600; white-space: nowrap; }
-td { color: var(--text-dim); }
-
-/* Stack */
-.stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
-.stack-item { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 18px; text-align: center; }
-.stack-item .name { font-family: var(--mono); color: var(--teal); font-size: 0.9rem; font-weight: 600; }
-.stack-item .role { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; }
-.stats { display: flex; gap: 40px; justify-content: center; margin-top: 44px; flex-wrap: wrap; }
-.stat { text-align: center; }
-.stat .num { font-size: 2.4rem; font-weight: 800; color: var(--teal); font-family: var(--mono); }
-.stat .lbl { color: var(--text-dim); font-size: 0.85rem; }
-
-/* Limitations / Roadmap */
-.limits { columns: 2; column-gap: 40px; margin-top: 24px; }
-.limits li { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 10px; break-inside: avoid; list-style: none; padding-left: 26px; position: relative; }
-.limits li::before { content: "—"; position: absolute; left: 0; color: var(--orange); }
-.limits.roadmap li::before { content: "☐"; color: var(--text-dim); font-size: 1em; top: 0; }
-
-/* Footer */
-footer { border-top: 1px solid var(--panel-border); padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.88rem; }
+/* ---------- Footer ---------- */
+footer { border-top: 1px solid var(--border); padding: 44px 0; text-align: center; color: var(--text-dim); font-size: 0.88rem; }
 footer .brand { justify-content: center; margin-bottom: 12px; }
 
-@media (max-width: 800px) {
-  .feat-grid, .why-grid { grid-template-columns: 1fr; }
-  .install-grid { grid-template-columns: 1fr; }
-  .stack-grid { grid-template-columns: repeat(2, 1fr); }
-  .limits { columns: 1; }
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .glow, .hero-icon, h1 .accent, .btn-primary::after, .type-chip .cursor { animation: none !important; }
+  .hero-in { opacity: 1; transform: none; animation: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .btn, .feat, .step, .stat, .dl-hero, .shot .frame { transition: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) {
+  section { padding: 56px 0; }
+  header { padding-top: 64px; }
+  .feat-grid { grid-template-columns: 1fr; }
   .nav-links a:not(.gh-btn) { display: none; }
-  .download-cards { flex-direction: column; }
-  .dl-card { flex: unset; }
+  .shot { padding: 36px 0 48px; }
+  .stats { gap: 10px; }
+  .stat { min-width: 110px; }
 }
 </style>
 </head>
@@ -225,227 +328,127 @@ footer .brand { justify-content: center; margin-bottom: 12px; }
 
 <nav>
   <div class="nav-inner">
-    <div class="brand"><img src="assets/icon-256.png" alt="Tigriden icon">Tigriden</div>
+    <a href="#" class="brand" style="text-decoration:none"><img src="assets/icon-256.png" alt="Tigriden icon">Tigriden</a>
     <div class="nav-links">
-      <a href="#why">Why</a>
       <a href="#features">Features</a>
       <a href="#install">Install</a>
-      <a href="#usage">Usage</a>
-      <a href="#config">Config</a>
-      <a class="gh-btn" href="https://github.com/Sompote/Tigriden">GitHub ↗</a>
+      <a href="#start">Quick start</a>
+      <a class="gh-btn" href="https://github.com/Sompote/Tigriden">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
     </div>
   </div>
 </nav>
 
 <header>
+  <div class="glow a"></div>
+  <div class="glow b"></div>
   <div class="container">
-    <img class="hero-icon" src="assets/icon-256.png" alt="Tigriden app icon — a lion beside a terminal window">
-    <h1>Terminal for <span class="accent">Agentic Coding</span></h1>
-    <p class="tagline">A tiny desktop IDE built for one job: <strong>supervising AI coding agents</strong>.
-    Run <strong>claude</strong>, <strong>codex</strong>, <strong>gemini</strong> — any terminal agent — each in its own folder, side by side.</p>
-    <div class="badges">
-      <span class="badge version">v0.1.0</span>
-      <span class="badge rust">Pure Rust</span>
-      <span class="badge">MIT License</span>
-      <span class="badge">macOS</span>
-      <span class="badge">~10 MB binary · ~40 MB RAM</span>
-    </div>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">⬇ Download for macOS</a>
+    <img class="hero-icon hero-in d1" src="assets/icon-256.png" alt="Tigriden app icon — a lion beside a terminal window">
+    <h1 class="hero-in d2">Terminal for<br><span class="accent">Agentic Coding</span></h1>
+    <p class="tagline hero-in d3">A tiny desktop IDE built for one job: <strong>supervising AI coding agents</strong> — each in its own folder, side by side.</p>
+    <div class="hero-in d4"><span class="type-chip"><span class="p">$</span> <span id="typed">claude</span><span class="cursor"></span></span></div>
+    <div class="cta-row hero-in d5">
+      <a class="btn btn-primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">⬇&#xFE0E;&nbsp; Download for macOS</a>
       <a class="btn btn-secondary" href="https://github.com/Sompote/Tigriden">View on GitHub</a>
     </div>
-    <div class="shot">
+    <div class="hero-meta hero-in d6">
+      <span>v0.1.0</span>
+      <span>Pure Rust</span>
+      <span>~10 MB · ~40 MB RAM</span>
+      <span>MIT</span>
+    </div>
+    <div class="shot hero-in d6">
       <figure>
-        <img src="assets/screenshot.png" alt="Tigriden supervising an agent: the viewer shows a chart the agent produced while the agent CLI runs in one of three terminal tabs below">
-        <figcaption>A real session — the workspace file tree on the left, the built-in viewer inspecting a chart the agent just generated, and the agent CLI running in one of three terminal tabs below.</figcaption>
+        <div class="frame">
+          <img src="assets/screenshot.png" alt="Tigriden supervising an agent: the viewer shows a chart the agent produced while the agent CLI runs in one of three terminal tabs below">
+        </div>
+        <figcaption>A real session — file tree, built-in viewer, and the agent running in one of three terminal tabs.</figcaption>
       </figure>
     </div>
   </div>
 </header>
 
-<section id="why" class="alt">
+<section id="features" class="alt">
   <div class="container">
-    <h2>Why Tigriden?</h2>
-    <p class="section-lead">Agentic coding means running several agents in several folders and checking in on them. A full IDE is overkill for that; a bare terminal multiplexer gives you no file browser and no editor. Tigriden is the minimal middle: <strong>one window, one session per folder, agent&nbsp;+&nbsp;files&nbsp;+&nbsp;editor together.</strong></p>
-    <div class="why-grid">
-      <div class="why-card">
-        <span class="no">Not a full IDE</span>
-        <h3>No run/debug tooling, no LSP</h3>
-        <p>The agents do the heavy lifting. Tigriden skips the machinery you don't need when an agent is writing the code.</p>
-      </div>
-      <div class="why-card">
-        <span class="no">Not a bare multiplexer</span>
-        <h3>Files and editor included</h3>
-        <p>tmux gives you terminals but no file browser and no editor. Tigriden pairs every terminal with a live tree and a real editor.</p>
-      </div>
-      <div class="why-card">
-        <span class="yes">The minimal middle</span>
-        <h3>Eyes and hands on your agents</h3>
-        <p>Watch the file tree update as agents work, inspect what they produce, and tweak files without leaving the window.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="features">
-  <div class="container">
-    <h2>Features</h2>
-    <p class="section-lead">Everything you need to steer parallel agents — and nothing you don't. No webview, no Electron, no C regex libraries. Slint UI with both panes rasterized straight to pixel buffers.</p>
+    <span class="eyebrow reveal">Capabilities</span>
+    <h2 class="reveal">The minimal middle</h2>
+    <p class="section-lead reveal">A full IDE is overkill for supervising agents; a bare multiplexer gives you no files and no editor. Tigriden is what's in between: <strong>one window, one session per folder, agent&nbsp;+&nbsp;files&nbsp;+&nbsp;editor together.</strong></p>
     <div class="feat-grid">
-      <div class="feat"><span class="icon">🚀</span><h3>One-click agents</h3><p>Preset buttons type the agent command into the terminal for you — fully configurable via <code>config.toml</code>.</p></div>
-      <div class="feat"><span class="icon">🗂️</span><h3>Multiple terminals per folder</h3><p>The <code>+</code> tab spawns extra shells in the same workspace, so one agent runs while you use another terminal for git, tests, or a second agent.</p></div>
-      <div class="feat"><span class="icon">💻</span><h3>Real terminal</h3><p>VTE-compliant emulation (alacritty_terminal + a real PTY). <code>vim</code>, <code>top</code>, and the Claude Code TUI just work — bracketed paste, truecolor, mouse selection, image paste into Claude Code.</p></div>
-      <div class="feat"><span class="icon">🌲</span><h3>Live file tree</h3><p>Gitignore-aware, refreshes automatically as agents create and delete files. Right-click for New File/Folder, Reveal in Finder, Duplicate, Rename, Move to Trash and more.</p></div>
-      <div class="feat"><span class="icon">📎</span><h3>Drag &amp; drop files</h3><p>Drop any file from Finder onto the window and its shell-quoted path is typed into the terminal — attach files to an agent prompt like in a native terminal.</p></div>
-      <div class="feat"><span class="icon">✏️</span><h3>Built-in editor</h3><p>Syntax highlighting for 40+ languages (cosmic-text + syntect), edit and <code>⌘S</code> save. When an agent edits the open file on disk, it reloads automatically.</p></div>
-      <div class="feat"><span class="icon">👁️</span><h3>File viewers</h3><p>Images, Markdown rendered with headings and inline pictures, CSV/TSV as aligned tables, PDF text extraction. Toggle between rendered view and editable source.</p></div>
-      <div class="feat"><span class="icon">📁</span><h3>Per-folder sessions</h3><p>Each workspace keeps its own shell, tree, and open file; switching is instant.</p></div>
-      <div class="feat"><span class="icon">🕐</span><h3>Recent folders</h3><p>Every folder you add is remembered permanently. Reopen from the <strong>⟳</strong> button or <strong>File ▸ Open Recent</strong> — even after removing it from the workbench.</p></div>
-      <div class="feat"><span class="icon">💾</span><h3>Persistent</h3><p>Folders, active session, and layout are restored on relaunch. Fresh shells each time by design.</p></div>
-      <div class="feat"><span class="icon">🍎</span><h3>Native macOS</h3><p>Real menu bar (File, Edit) routed to whichever pane has focus. Dock icon, drag-to-Applications app bundle.</p></div>
+      <div class="feat reveal"><span class="icon">🚀</span><h3>One-click agents</h3><p>Preset buttons launch <code>claude</code>, <code>codex</code>, <code>gemini</code> — or any command — fully configurable.</p></div>
+      <div class="feat reveal"><span class="icon">💻</span><h3>Real terminal</h3><p>VTE-compliant emulation with a real PTY. <code>vim</code>, <code>top</code>, and the Claude Code TUI just work — truecolor, mouse selection, image paste.</p></div>
+      <div class="feat reveal"><span class="icon">🌲</span><h3>Live file tree</h3><p>Gitignore-aware, updates as agents create and delete files. Right-click for rename, duplicate, reveal, trash, and more.</p></div>
+      <div class="feat reveal"><span class="icon">✏️</span><h3>Editor &amp; viewers</h3><p>Syntax highlighting for 40+ languages, plus rendered Markdown, images, CSV tables, and PDF text. Auto-reloads when an agent edits the open file.</p></div>
+      <div class="feat reveal"><span class="icon">🗂️</span><h3>Parallel sessions</h3><p>Every folder gets its own shell, tree, and open file — plus extra terminal tabs for git or a second agent. Layout restored on relaunch.</p></div>
+      <div class="feat reveal"><span class="icon">🍎</span><h3>Native &amp; tiny</h3><p>Pure Rust, no Electron, no webview. Real macOS menu bar, drag &amp; drop file paths from Finder into the terminal.</p></div>
     </div>
   </div>
 </section>
 
-<section id="install" class="alt">
+<section id="install">
   <div class="container">
-    <h2>Install</h2>
-    <p class="section-lead">Prebuilt binaries are available — no Rust required. macOS is the primary target; Linux/Windows are untested but the stack is cross-platform.</p>
+    <span class="eyebrow reveal">Get started</span>
+    <h2 class="reveal">Install</h2>
+    <p class="section-lead reveal">Prebuilt for macOS — no Rust required.</p>
 
-    <h3 style="margin-bottom:16px">Quick install (macOS)</h3>
-    <div class="download-cards">
-      <a class="dl-card primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">
-        <span class="dl-icon">⬇</span>
-        <span class="dl-info">
-          <span class="dl-title">Universal App Bundle</span>
-          <span class="dl-sub">Apple Silicon + Intel · Drag to /Applications</span>
-        </span>
-      </a>
-      <a class="dl-card" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-arm64.tar.gz">
-        <span class="dl-icon">⬇</span>
-        <span class="dl-info">
-          <span class="dl-title">Binary · arm64</span>
-          <span class="dl-sub">Apple Silicon bare binary</span>
-        </span>
-      </a>
-      <a class="dl-card" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-x86_64.tar.gz">
-        <span class="dl-icon">⬇</span>
-        <span class="dl-info">
-          <span class="dl-title">Binary · x86_64</span>
-          <span class="dl-sub">Intel bare binary</span>
-        </span>
-      </a>
-    </div>
-    <p class="install-note" style="margin-top:14px">First launch only: the app isn't notarized — <strong>right-click → Open → Open</strong>, or run:<br>
-    <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">xattr -d com.apple.quarantine /Applications/Tigriden.app</code></p>
+    <a class="dl-hero reveal" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">
+      <span class="dl-icon">⬇&#xFE0E;</span>
+      <span>
+        <span class="dl-title">Tigriden.app — Universal</span>
+        <span class="dl-sub">Apple Silicon + Intel · 14.4 MB · unzip, drag to /Applications</span>
+      </span>
+    </a>
+    <p class="dl-alt reveal">Prefer a bare binary? <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-arm64.tar.gz">arm64</a> · <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-x86_64.tar.gz">x86_64</a> — untar and run <code class="inline">./tigriden</code></p>
+    <p class="install-note reveal">First launch only (not notarized): <strong>right-click → Open → Open</strong>, or
+    <code class="inline">xattr -d com.apple.quarantine /Applications/Tigriden.app</code></p>
 
-    <h3 style="margin-top:40px;margin-bottom:16px">Build from source</h3>
-    <div class="install-grid">
-      <div>
-        <div class="term">
-          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">zsh</span><button class="copy" data-copy="git clone https://github.com/Sompote/Tigriden.git
+    <details class="src reveal">
+      <summary>Build from source</summary>
+      <div class="term">
+        <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">zsh</span><button class="copy" data-copy="git clone https://github.com/Sompote/Tigriden.git
 cd Tigriden
 cargo build --release
 ./target/release/tigriden">Copy</button></div>
-          <pre><span class="p">$</span> git clone https://github.com/Sompote/Tigriden.git
+        <pre><span class="p">$</span> git clone https://github.com/Sompote/Tigriden.git
 <span class="p">$</span> cd Tigriden
 <span class="p">$</span> cargo build --release
 <span class="p">$</span> ./target/release/tigriden</pre>
-        </div>
-        <p class="install-note">Stable Rust required. Or run <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">./bundle/make-app.sh</code> for <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">dist/Tigriden.app</code>.</p>
       </div>
-    </div>
+    </details>
   </div>
 </section>
 
-<section id="usage">
+<section id="start" class="alt">
   <div class="container">
-    <h2>Usage</h2>
-    <div class="steps">
-      <div class="step"><span class="step-num"></span><p>Click <strong>+ Add folder</strong> and pick a project directory — a login shell opens there.</p></div>
-      <div class="step"><span class="step-num"></span><p>Click a preset button (e.g. <strong>claude</strong>) to launch the agent, or type any command.</p></div>
-      <div class="step"><span class="step-num"></span><p>Watch the file tree update as the agent works; click any file to inspect or tweak it.</p></div>
-      <div class="step"><span class="step-num"></span><p>Click <strong>+</strong> in the terminal tab strip to open more terminals in the same folder — each tab is its own shell.</p></div>
-      <div class="step"><span class="step-num"></span><p>Add more folders to run more agents in parallel; switch by clicking a session in the sidebar.</p></div>
-      <div class="step"><span class="step-num"></span><p>Click <strong>⟳</strong> (bottom of the sidebar) to reopen any previously added folder without the file dialog.</p></div>
+    <span class="eyebrow reveal">Workflow</span>
+    <h2 class="reveal">Quick start</h2>
+    <div class="steps" style="margin-top:32px">
+      <div class="step reveal"><span class="step-num"></span><p><strong>Add a folder</strong> — a login shell opens there. Add more folders to run more agents in parallel.</p></div>
+      <div class="step reveal"><span class="step-num"></span><p><strong>Launch an agent</strong> with a preset button, or type any command. The <strong>+</strong> tab opens extra shells in the same folder.</p></div>
+      <div class="step reveal"><span class="step-num"></span><p><strong>Watch and steer</strong> — the tree updates as the agent works; click any file to inspect or tweak it without leaving the window.</p></div>
     </div>
 
-    <h2 style="margin-top:64px">Keys</h2>
-    <table>
-      <thead><tr><th>Context</th><th>Keys</th></tr></thead>
-      <tbody>
-        <tr><td>Terminal</td><td>Everything a terminal expects: <kbd>Ctrl+C/Z/D/R</kbd>…, arrows, <kbd>F1–F12</kbd>, TUIs; drag to select (double-click = word), <kbd>⌘C</kbd> copies, <kbd>⌘V</kbd> pastes (bracketed); wheel scrolls history</td></tr>
-        <tr><td>Editor</td><td>Typing, arrows / Home / End / PgUp / PgDn (<kbd>+Shift</kbd> selects, <kbd>+Alt</kbd> jumps words), <kbd>⌘A/C/X/V</kbd>, <kbd>⌘S</kbd> saves</td></tr>
-        <tr><td>Menu bar</td><td>Add Folder <kbd>⌘O</kbd>, New Terminal <kbd>⌘T</kbd>, Save <kbd>⌘S</kbd>, Close Terminal <kbd>⌘W</kbd>, Close Folder <kbd>⇧⌘W</kbd></td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section id="config" class="alt">
-  <div class="container">
-    <h2>Configuration</h2>
-    <p class="section-lead"><code style="font-family:var(--mono);color:var(--teal)">~/Library/Application&nbsp;Support/tigriden/config.toml</code>, created on first run:</p>
-    <div class="term">
-      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">config.toml</span></div>
+    <div class="term reveal" style="margin-top:44px">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">~/Library/Application Support/tigriden/config.toml</span></div>
       <pre><span class="k">theme</span> = <span class="s">"dark"</span>          <span class="c"># "dark" | "light"</span>
 <span class="k">font_family</span> = <span class="s">"Menlo"</span>
 <span class="k">font_size</span> = 13.0
-<span class="k">scrollback</span> = 10000
 
 <span class="c">[[presets]]</span>
 <span class="k">label</span> = <span class="s">"claude"</span>
 <span class="k">command</span> = <span class="s">"claude"</span>
-<span class="k">send_enter</span> = true
-
-<span class="c">[[presets]]</span>
-<span class="k">label</span> = <span class="s">"codex"</span>
-<span class="k">command</span> = <span class="s">"codex"</span>
-
-<span class="c">[[presets]]</span>
-<span class="k">label</span> = <span class="s">"gemini"</span>
-<span class="k">command</span> = <span class="s">"gemini"</span></pre>
+<span class="k">send_enter</span> = true</pre>
     </div>
-  </div>
-</section>
 
-<section id="stack">
-  <div class="container">
-    <h2>Under the hood</h2>
-    <p class="section-lead">Written in pure Rust. Small on purpose.</p>
-    <div class="stack-grid">
-      <div class="stack-item"><div class="name">Slint</div><div class="role">UI framework</div></div>
-      <div class="stack-item"><div class="name">alacritty_terminal</div><div class="role">Terminal engine + portable-pty</div></div>
-      <div class="stack-item"><div class="name">cosmic-text</div><div class="role">Text rendering (swash cache)</div></div>
-      <div class="stack-item"><div class="name">syntect</div><div class="role">Syntax highlighting</div></div>
-    </div>
     <div class="stats">
-      <div class="stat"><div class="num">~10 MB</div><div class="lbl">binary size</div></div>
-      <div class="stat"><div class="num">~40 MB</div><div class="lbl">RAM footprint</div></div>
-      <div class="stat"><div class="num">40+</div><div class="lbl">languages highlighted</div></div>
-      <div class="stat"><div class="num">0</div><div class="lbl">webviews / Electron</div></div>
+      <div class="stat reveal"><div class="num">~10 MB</div><div class="lbl">binary</div></div>
+      <div class="stat reveal"><div class="num">~40 MB</div><div class="lbl">RAM</div></div>
+      <div class="stat reveal"><div class="num">40+</div><div class="lbl">languages</div></div>
+      <div class="stat reveal"><div class="num">0</div><div class="lbl">webviews</div></div>
     </div>
 
-    <h2 style="margin-top:72px">Architecture</h2>
-    <p class="section-lead" style="margin-bottom:20px">Slint provides only the chrome (sidebar, layout, splitter). The two hard parts are custom-rendered pixel panes on the CPU:</p>
-    <table>
-      <thead><tr><th>Pane</th><th>Engine</th><th>Rendering</th></tr></thead>
-      <tbody>
-        <tr><td>Terminal</td><td>headless <code>alacritty_terminal</code> grid fed by <code>portable-pty</code></td><td>glyphs rasterized per cell via cosmic-text's swash cache</td></tr>
-        <tr><td>Editor</td><td>cosmic-text <code>SyntaxEditor</code> (syntect highlighting)</td><td>draws itself into the same pixel-buffer canvas</td></tr>
-      </tbody>
-    </table>
-    <p class="install-note" style="margin-top:14px"><code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">vendor/cosmic-text/</code> is a verbatim copy of cosmic-text 0.19 with one change: its syntect dependency uses the pure-Rust <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">fancy-regex</code> engine instead of oniguruma (no C build dependency, smaller binary).</p>
-
-    <h2 style="margin-top:72px">Roadmap</h2>
-    <ul class="limits roadmap">
-      <li>Editor undo</li>
-      <li>Mouse reporting to TUIs</li>
-      <li>IME / dead-key composition</li>
-      <li>Editor tabs (one open file per session today)</li>
-      <li>PDF page rendering (currently text extraction)</li>
-      <li>Linux / Windows testing</li>
-    </ul>
+    <p class="install-note reveal" style="margin-top:36px;text-align:center">Keyboard reference, architecture, and roadmap live in the <a href="https://github.com/Sompote/Tigriden#readme">full docs on GitHub</a>.</p>
   </div>
 </section>
 
@@ -457,6 +460,7 @@ cargo build --release
 </footer>
 
 <script>
+// Copy buttons
 document.querySelectorAll('.copy').forEach(btn => {
   btn.addEventListener('click', () => {
     navigator.clipboard.writeText(btn.dataset.copy).then(() => {
@@ -465,6 +469,46 @@ document.querySelectorAll('.copy').forEach(btn => {
     });
   });
 });
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Typing effect: cycle agent commands
+if (!reduced) {
+  const words = ['claude', 'codex', 'gemini'];
+  const el = document.getElementById('typed');
+  let wi = 0, ci = words[0].length, deleting = false;
+  (function tick() {
+    const word = words[wi];
+    if (deleting) {
+      ci--;
+      if (ci === 0) { deleting = false; wi = (wi + 1) % words.length; }
+    } else {
+      ci++;
+      if (ci > word.length) { ci = word.length; deleting = true; el.textContent = word; setTimeout(tick, 2200); return; }
+    }
+    el.textContent = (deleting ? word : words[wi]).slice(0, ci);
+    setTimeout(tick, deleting ? 55 : 110);
+  })();
+}
+
+// Scroll reveals with stagger
+if (!reduced && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const el = e.target;
+        const siblings = [...el.parentElement.children].filter(c => c.classList.contains('reveal'));
+        const idx = siblings.indexOf(el);
+        el.style.transitionDelay = (idx > 0 ? Math.min(idx * 70, 420) : 0) + 'ms';
+        el.classList.add('in');
+        io.unobserve(el);
+      }
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+} else {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+}
 </script>
 
 </body>

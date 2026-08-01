@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tigriden — Terminal for Agentic Coding</title>
+<meta name="description" content="Tigriden is a tiny desktop IDE built for one job: supervising AI coding agents. Run claude, codex, gemini — any terminal agent — each in its own folder, side by side. Pure Rust, ~10 MB binary, ~40 MB RAM.">
+<meta property="og:title" content="Tigriden — Terminal for Agentic Coding">
+<meta property="og:description" content="A tiny desktop IDE built for one job: supervising AI coding agents. Pure Rust, ~10 MB binary, ~40 MB RAM.">
+<meta property="og:image" content="assets/screenshot.png">
+<link rel="icon" type="image/png" href="assets/icon-256.png">
+<style>
+:root {
+  --bg: #0b1220;
+  --bg-alt: #0f1a2e;
+  --panel: #13213a;
+  --panel-border: #22375c;
+  --text: #d8e2f2;
+  --text-dim: #8aa0c2;
+  --navy: #1b3a5f;
+  --teal: #2dd4bf;
+  --teal-dim: #1a8f80;
+  --orange: #e8912d;
+  --mono: "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.container { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+/* Nav */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11, 18, 32, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--panel-border);
+}
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px; max-width: 1060px; margin: 0 auto;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: var(--text); }
+.brand img { width: 32px; height: 32px; border-radius: 7px; }
+.nav-links { display: flex; gap: 24px; align-items: center; font-size: 0.92rem; }
+.nav-links a { color: var(--text-dim); }
+.nav-links a:hover { color: var(--teal); text-decoration: none; }
+.nav-links .gh-btn {
+  background: var(--panel); border: 1px solid var(--panel-border);
+  padding: 6px 14px; border-radius: 8px; color: var(--text);
+}
+.nav-links .gh-btn:hover { border-color: var(--teal); }
+
+/* Hero */
+header { padding: 72px 0 40px; text-align: center; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(45, 212, 191, 0.10), transparent); }
+.hero-icon { width: 96px; height: 96px; margin-bottom: 20px; border-radius: 22px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+h1 { font-size: clamp(2.2rem, 5.5vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; }
+h1 .accent { color: var(--teal); }
+.tagline { font-size: clamp(1.05rem, 2.5vw, 1.3rem); color: var(--text-dim); margin: 14px auto 0; max-width: 640px; }
+.tagline strong { color: var(--text); }
+.badges { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+.badge {
+  font-family: var(--mono); font-size: 0.78rem; padding: 4px 12px;
+  border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim);
+}
+.badge.version { color: var(--orange); border-color: rgba(232, 145, 45, 0.4); }
+.badge.rust { color: var(--teal); border-color: rgba(45, 212, 191, 0.4); }
+.cta-row { display: flex; gap: 14px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 26px; border-radius: 10px; font-weight: 600; font-size: 1rem;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.btn:hover { text-decoration: none; transform: translateY(-1px); }
+.btn-primary { background: var(--teal); color: #06251f; box-shadow: 0 4px 20px rgba(45, 212, 191, 0.3); }
+.btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--panel-border); }
+.btn-secondary:hover { border-color: var(--teal); }
+
+/* Screenshot */
+.shot { padding: 44px 0 10px; }
+.shot img {
+  width: 100%; border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+}
+.shot figcaption { text-align: center; color: var(--text-dim); font-size: 0.88rem; margin-top: 14px; }
+
+/* Sections */
+section { padding: 72px 0; }
+section.alt { background: var(--bg-alt); }
+h2 { font-size: 1.9rem; font-weight: 750; letter-spacing: -0.01em; margin-bottom: 12px; }
+.section-lead { color: var(--text-dim); max-width: 700px; margin-bottom: 40px; }
+.section-lead strong { color: var(--text); }
+
+/* Why cards */
+.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+.why-card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 24px; }
+.why-card h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.why-card p { color: var(--text-dim); font-size: 0.93rem; }
+.why-card .no { color: var(--orange); font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 10px; }
+.why-card .yes { color: var(--teal); font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 10px; }
+
+/* Features */
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.feat {
+  background: var(--panel); border: 1px solid var(--panel-border);
+  border-radius: 12px; padding: 22px; transition: border-color 0.15s, transform 0.15s;
+}
+.feat:hover { border-color: var(--teal-dim); transform: translateY(-2px); }
+.feat .icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+.feat h3 { font-size: 1rem; margin-bottom: 6px; }
+.feat p { color: var(--text-dim); font-size: 0.88rem; }
+.feat code { font-family: var(--mono); font-size: 0.82em; background: rgba(45,212,191,0.1); color: var(--teal); padding: 1px 5px; border-radius: 4px; }
+
+/* Terminal code blocks */
+.term {
+  background: #0a0f1a; border: 1px solid var(--panel-border); border-radius: 12px;
+  overflow: hidden; margin: 20px 0; font-family: var(--mono); font-size: 0.88rem;
+}
+.term-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel); padding: 10px 14px; border-bottom: 1px solid var(--panel-border);
+}
+.dot { width: 11px; height: 11px; border-radius: 50%; }
+.dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+.term-title { color: var(--text-dim); font-size: 0.78rem; margin-left: 8px; }
+.term-bar .copy {
+  margin-left: auto; background: none; border: 1px solid var(--panel-border); color: var(--text-dim);
+  font-family: var(--sans); font-size: 0.75rem; padding: 3px 10px; border-radius: 6px; cursor: pointer;
+}
+.term-bar .copy:hover { color: var(--teal); border-color: var(--teal); }
+.term pre { padding: 18px; overflow-x: auto; line-height: 1.7; }
+.term .p { color: var(--teal); }
+.term .c { color: #5c718f; }
+.term .k { color: var(--orange); }
+.term .s { color: #9ece6a; }
+
+/* Install layout */
+.install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.install-note { color: var(--text-dim); font-size: 0.88rem; margin-top: 8px; }
+
+/* Download cards */
+.download-cards { display: flex; gap: 14px; flex-wrap: wrap; }
+.dl-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px;
+  padding: 16px 22px; text-decoration: none; flex: 1; min-width: 200px;
+  transition: border-color 0.15s, transform 0.12s;
+}
+.dl-card:hover { border-color: var(--teal-dim); transform: translateY(-1px); text-decoration: none; }
+.dl-card.primary { border-color: rgba(45, 212, 191, 0.5); background: rgba(45, 212, 191, 0.06); }
+.dl-card.primary:hover { border-color: var(--teal); }
+.dl-icon { font-size: 1.4rem; flex-shrink: 0; }
+.dl-info { display: flex; flex-direction: column; gap: 2px; }
+.dl-title { color: var(--text); font-weight: 600; font-size: 0.95rem; }
+.dl-sub { color: var(--text-dim); font-size: 0.8rem; }
+
+/* Usage steps */
+.steps { counter-reset: step; display: grid; gap: 0; margin-top: 30px; }
+.step { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--panel-border); }
+.step:last-child { border-bottom: none; }
+.step-num {
+  counter-increment: step; flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--panel); border: 1px solid var(--teal-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); color: var(--teal); font-weight: 700; font-size: 0.9rem;
+}
+.step-num::before { content: counter(step); }
+.step p { color: var(--text-dim); padding-top: 5px; }
+.step p strong { color: var(--text); }
+.step kbd, td kbd {
+  font-family: var(--mono); font-size: 0.8em; background: var(--panel);
+  border: 1px solid var(--panel-border); border-bottom-width: 2px;
+  border-radius: 5px; padding: 2px 7px; color: var(--text);
+}
+
+/* Keys table */
+table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 0.92rem; }
+th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--panel-border); }
+th { color: var(--teal); font-family: var(--mono); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+td { color: var(--text-dim); }
+
+/* Stack */
+.stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
+.stack-item { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 18px; text-align: center; }
+.stack-item .name { font-family: var(--mono); color: var(--teal); font-size: 0.9rem; font-weight: 600; }
+.stack-item .role { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; }
+.stats { display: flex; gap: 40px; justify-content: center; margin-top: 44px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat .num { font-size: 2.4rem; font-weight: 800; color: var(--teal); font-family: var(--mono); }
+.stat .lbl { color: var(--text-dim); font-size: 0.85rem; }
+
+/* Limitations / Roadmap */
+.limits { columns: 2; column-gap: 40px; margin-top: 24px; }
+.limits li { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 10px; break-inside: avoid; list-style: none; padding-left: 26px; position: relative; }
+.limits li::before { content: "—"; position: absolute; left: 0; color: var(--orange); }
+.limits.roadmap li::before { content: "☐"; color: var(--text-dim); font-size: 1em; top: 0; }
+
+/* Footer */
+footer { border-top: 1px solid var(--panel-border); padding: 40px 0; text-align: center; color: var(--text-dim); font-size: 0.88rem; }
+footer .brand { justify-content: center; margin-bottom: 12px; }
+
+@media (max-width: 800px) {
+  .feat-grid, .why-grid { grid-template-columns: 1fr; }
+  .install-grid { grid-template-columns: 1fr; }
+  .stack-grid { grid-template-columns: repeat(2, 1fr); }
+  .limits { columns: 1; }
+  .nav-links a:not(.gh-btn) { display: none; }
+  .download-cards { flex-direction: column; }
+  .dl-card { flex: unset; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><img src="assets/icon-256.png" alt="Tigriden icon">Tigriden</div>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#usage">Usage</a>
+      <a href="#config">Config</a>
+      <a class="gh-btn" href="https://github.com/Sompote/Tigriden">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="container">
+    <img class="hero-icon" src="assets/icon-256.png" alt="Tigriden app icon — a lion beside a terminal window">
+    <h1>Terminal for <span class="accent">Agentic Coding</span></h1>
+    <p class="tagline">A tiny desktop IDE built for one job: <strong>supervising AI coding agents</strong>.
+    Run <strong>claude</strong>, <strong>codex</strong>, <strong>gemini</strong> — any terminal agent — each in its own folder, side by side.</p>
+    <div class="badges">
+      <span class="badge version">v0.1.0</span>
+      <span class="badge rust">Pure Rust</span>
+      <span class="badge">MIT License</span>
+      <span class="badge">macOS</span>
+      <span class="badge">~10 MB binary · ~40 MB RAM</span>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">⬇ Download for macOS</a>
+      <a class="btn btn-secondary" href="https://github.com/Sompote/Tigriden">View on GitHub</a>
+    </div>
+    <div class="shot">
+      <figure>
+        <img src="assets/screenshot.png" alt="Tigriden supervising an agent: the viewer shows a chart the agent produced while the agent CLI runs in one of three terminal tabs below">
+        <figcaption>A real session — the workspace file tree on the left, the built-in viewer inspecting a chart the agent just generated, and the agent CLI running in one of three terminal tabs below.</figcaption>
+      </figure>
+    </div>
+  </div>
+</header>
+
+<section id="why" class="alt">
+  <div class="container">
+    <h2>Why Tigriden?</h2>
+    <p class="section-lead">Agentic coding means running several agents in several folders and checking in on them. A full IDE is overkill for that; a bare terminal multiplexer gives you no file browser and no editor. Tigriden is the minimal middle: <strong>one window, one session per folder, agent&nbsp;+&nbsp;files&nbsp;+&nbsp;editor together.</strong></p>
+    <div class="why-grid">
+      <div class="why-card">
+        <span class="no">Not a full IDE</span>
+        <h3>No run/debug tooling, no LSP</h3>
+        <p>The agents do the heavy lifting. Tigriden skips the machinery you don't need when an agent is writing the code.</p>
+      </div>
+      <div class="why-card">
+        <span class="no">Not a bare multiplexer</span>
+        <h3>Files and editor included</h3>
+        <p>tmux gives you terminals but no file browser and no editor. Tigriden pairs every terminal with a live tree and a real editor.</p>
+      </div>
+      <div class="why-card">
+        <span class="yes">The minimal middle</span>
+        <h3>Eyes and hands on your agents</h3>
+        <p>Watch the file tree update as agents work, inspect what they produce, and tweak files without leaving the window.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <h2>Features</h2>
+    <p class="section-lead">Everything you need to steer parallel agents — and nothing you don't. No webview, no Electron, no C regex libraries. Slint UI with both panes rasterized straight to pixel buffers.</p>
+    <div class="feat-grid">
+      <div class="feat"><span class="icon">🚀</span><h3>One-click agents</h3><p>Preset buttons type the agent command into the terminal for you — fully configurable via <code>config.toml</code>.</p></div>
+      <div class="feat"><span class="icon">🗂️</span><h3>Multiple terminals per folder</h3><p>The <code>+</code> tab spawns extra shells in the same workspace, so one agent runs while you use another terminal for git, tests, or a second agent.</p></div>
+      <div class="feat"><span class="icon">💻</span><h3>Real terminal</h3><p>VTE-compliant emulation (alacritty_terminal + a real PTY). <code>vim</code>, <code>top</code>, and the Claude Code TUI just work — bracketed paste, truecolor, mouse selection, image paste into Claude Code.</p></div>
+      <div class="feat"><span class="icon">🌲</span><h3>Live file tree</h3><p>Gitignore-aware, refreshes automatically as agents create and delete files. Right-click for New File/Folder, Reveal in Finder, Duplicate, Rename, Move to Trash and more.</p></div>
+      <div class="feat"><span class="icon">📎</span><h3>Drag &amp; drop files</h3><p>Drop any file from Finder onto the window and its shell-quoted path is typed into the terminal — attach files to an agent prompt like in a native terminal.</p></div>
+      <div class="feat"><span class="icon">✏️</span><h3>Built-in editor</h3><p>Syntax highlighting for 40+ languages (cosmic-text + syntect), edit and <code>⌘S</code> save. When an agent edits the open file on disk, it reloads automatically.</p></div>
+      <div class="feat"><span class="icon">👁️</span><h3>File viewers</h3><p>Images, Markdown rendered with headings and inline pictures, CSV/TSV as aligned tables, PDF text extraction. Toggle between rendered view and editable source.</p></div>
+      <div class="feat"><span class="icon">📁</span><h3>Per-folder sessions</h3><p>Each workspace keeps its own shell, tree, and open file; switching is instant.</p></div>
+      <div class="feat"><span class="icon">🕐</span><h3>Recent folders</h3><p>Every folder you add is remembered permanently. Reopen from the <strong>⟳</strong> button or <strong>File ▸ Open Recent</strong> — even after removing it from the workbench.</p></div>
+      <div class="feat"><span class="icon">💾</span><h3>Persistent</h3><p>Folders, active session, and layout are restored on relaunch. Fresh shells each time by design.</p></div>
+      <div class="feat"><span class="icon">🍎</span><h3>Native macOS</h3><p>Real menu bar (File, Edit) routed to whichever pane has focus. Dock icon, drag-to-Applications app bundle.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="install" class="alt">
+  <div class="container">
+    <h2>Install</h2>
+    <p class="section-lead">Prebuilt binaries are available — no Rust required. macOS is the primary target; Linux/Windows are untested but the stack is cross-platform.</p>
+
+    <h3 style="margin-bottom:16px">Quick install (macOS)</h3>
+    <div class="download-cards">
+      <a class="dl-card primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">
+        <span class="dl-icon">⬇</span>
+        <span class="dl-info">
+          <span class="dl-title">Universal App Bundle</span>
+          <span class="dl-sub">Apple Silicon + Intel · Drag to /Applications</span>
+        </span>
+      </a>
+      <a class="dl-card" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-arm64.tar.gz">
+        <span class="dl-icon">⬇</span>
+        <span class="dl-info">
+          <span class="dl-title">Binary · arm64</span>
+          <span class="dl-sub">Apple Silicon bare binary</span>
+        </span>
+      </a>
+      <a class="dl-card" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-x86_64.tar.gz">
+        <span class="dl-icon">⬇</span>
+        <span class="dl-info">
+          <span class="dl-title">Binary · x86_64</span>
+          <span class="dl-sub">Intel bare binary</span>
+        </span>
+      </a>
+    </div>
+    <p class="install-note" style="margin-top:14px">First launch only: the app isn't notarized — <strong>right-click → Open → Open</strong>, or run:<br>
+    <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">xattr -d com.apple.quarantine /Applications/Tigriden.app</code></p>
+
+    <h3 style="margin-top:40px;margin-bottom:16px">Build from source</h3>
+    <div class="install-grid">
+      <div>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">zsh</span><button class="copy" data-copy="git clone https://github.com/Sompote/Tigriden.git
+cd Tigriden
+cargo build --release
+./target/release/tigriden">Copy</button></div>
+          <pre><span class="p">$</span> git clone https://github.com/Sompote/Tigriden.git
+<span class="p">$</span> cd Tigriden
+<span class="p">$</span> cargo build --release
+<span class="p">$</span> ./target/release/tigriden</pre>
+        </div>
+        <p class="install-note">Stable Rust required. Or run <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">./bundle/make-app.sh</code> for <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">dist/Tigriden.app</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="container">
+    <h2>Usage</h2>
+    <div class="steps">
+      <div class="step"><span class="step-num"></span><p>Click <strong>+ Add folder</strong> and pick a project directory — a login shell opens there.</p></div>
+      <div class="step"><span class="step-num"></span><p>Click a preset button (e.g. <strong>claude</strong>) to launch the agent, or type any command.</p></div>
+      <div class="step"><span class="step-num"></span><p>Watch the file tree update as the agent works; click any file to inspect or tweak it.</p></div>
+      <div class="step"><span class="step-num"></span><p>Click <strong>+</strong> in the terminal tab strip to open more terminals in the same folder — each tab is its own shell.</p></div>
+      <div class="step"><span class="step-num"></span><p>Add more folders to run more agents in parallel; switch by clicking a session in the sidebar.</p></div>
+      <div class="step"><span class="step-num"></span><p>Click <strong>⟳</strong> (bottom of the sidebar) to reopen any previously added folder without the file dialog.</p></div>
+    </div>
+
+    <h2 style="margin-top:64px">Keys</h2>
+    <table>
+      <thead><tr><th>Context</th><th>Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Terminal</td><td>Everything a terminal expects: <kbd>Ctrl+C/Z/D/R</kbd>…, arrows, <kbd>F1–F12</kbd>, TUIs; drag to select (double-click = word), <kbd>⌘C</kbd> copies, <kbd>⌘V</kbd> pastes (bracketed); wheel scrolls history</td></tr>
+        <tr><td>Editor</td><td>Typing, arrows / Home / End / PgUp / PgDn (<kbd>+Shift</kbd> selects, <kbd>+Alt</kbd> jumps words), <kbd>⌘A/C/X/V</kbd>, <kbd>⌘S</kbd> saves</td></tr>
+        <tr><td>Menu bar</td><td>Add Folder <kbd>⌘O</kbd>, New Terminal <kbd>⌘T</kbd>, Save <kbd>⌘S</kbd>, Close Terminal <kbd>⌘W</kbd>, Close Folder <kbd>⇧⌘W</kbd></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="config" class="alt">
+  <div class="container">
+    <h2>Configuration</h2>
+    <p class="section-lead"><code style="font-family:var(--mono);color:var(--teal)">~/Library/Application&nbsp;Support/tigriden/config.toml</code>, created on first run:</p>
+    <div class="term">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">config.toml</span></div>
+      <pre><span class="k">theme</span> = <span class="s">"dark"</span>          <span class="c"># "dark" | "light"</span>
+<span class="k">font_family</span> = <span class="s">"Menlo"</span>
+<span class="k">font_size</span> = 13.0
+<span class="k">scrollback</span> = 10000
+
+<span class="c">[[presets]]</span>
+<span class="k">label</span> = <span class="s">"claude"</span>
+<span class="k">command</span> = <span class="s">"claude"</span>
+<span class="k">send_enter</span> = true
+
+<span class="c">[[presets]]</span>
+<span class="k">label</span> = <span class="s">"codex"</span>
+<span class="k">command</span> = <span class="s">"codex"</span>
+
+<span class="c">[[presets]]</span>
+<span class="k">label</span> = <span class="s">"gemini"</span>
+<span class="k">command</span> = <span class="s">"gemini"</span></pre>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="container">
+    <h2>Under the hood</h2>
+    <p class="section-lead">Written in pure Rust. Small on purpose.</p>
+    <div class="stack-grid">
+      <div class="stack-item"><div class="name">Slint</div><div class="role">UI framework</div></div>
+      <div class="stack-item"><div class="name">alacritty_terminal</div><div class="role">Terminal engine + portable-pty</div></div>
+      <div class="stack-item"><div class="name">cosmic-text</div><div class="role">Text rendering (swash cache)</div></div>
+      <div class="stack-item"><div class="name">syntect</div><div class="role">Syntax highlighting</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">~10 MB</div><div class="lbl">binary size</div></div>
+      <div class="stat"><div class="num">~40 MB</div><div class="lbl">RAM footprint</div></div>
+      <div class="stat"><div class="num">40+</div><div class="lbl">languages highlighted</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">webviews / Electron</div></div>
+    </div>
+
+    <h2 style="margin-top:72px">Architecture</h2>
+    <p class="section-lead" style="margin-bottom:20px">Slint provides only the chrome (sidebar, layout, splitter). The two hard parts are custom-rendered pixel panes on the CPU:</p>
+    <table>
+      <thead><tr><th>Pane</th><th>Engine</th><th>Rendering</th></tr></thead>
+      <tbody>
+        <tr><td>Terminal</td><td>headless <code>alacritty_terminal</code> grid fed by <code>portable-pty</code></td><td>glyphs rasterized per cell via cosmic-text's swash cache</td></tr>
+        <tr><td>Editor</td><td>cosmic-text <code>SyntaxEditor</code> (syntect highlighting)</td><td>draws itself into the same pixel-buffer canvas</td></tr>
+      </tbody>
+    </table>
+    <p class="install-note" style="margin-top:14px"><code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">vendor/cosmic-text/</code> is a verbatim copy of cosmic-text 0.19 with one change: its syntect dependency uses the pure-Rust <code style="font-family:var(--mono);font-size:0.85em;color:var(--teal)">fancy-regex</code> engine instead of oniguruma (no C build dependency, smaller binary).</p>
+
+    <h2 style="margin-top:72px">Roadmap</h2>
+    <ul class="limits roadmap">
+      <li>Editor undo</li>
+      <li>Mouse reporting to TUIs</li>
+      <li>IME / dead-key composition</li>
+      <li>Editor tabs (one open file per session today)</li>
+      <li>PDF page rendering (currently text extraction)</li>
+      <li>Linux / Windows testing</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="brand"><img src="assets/icon-256.png" alt="" style="width:28px;height:28px;border-radius:6px">Tigriden</div>
+    <p>MIT License · <a href="https://github.com/Sompote/Tigriden">github.com/Sompote/Tigriden</a></p>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  });
+});
+</script>
+
+</body>
+</html>

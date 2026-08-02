@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tigriden — Terminal for Agentic Coding</title>
-<meta name="description" content="Tigriden is a tiny desktop IDE built for one job: supervising AI coding agents. Run claude, codex, gemini — any terminal agent — each in its own folder, side by side. Pure Rust, ~10 MB binary, ~40 MB RAM.">
+<meta name="description" content="Tigriden is a tiny desktop IDE for supervising AI coding agents. Run claude, codex, gemini — any terminal agent — many at once, each in its own folder, across multiple windows. Track every file they touch and roll it back. Pure Rust, ~10 MB binary, ~40 MB RAM.">
 <meta property="og:title" content="Tigriden — Terminal for Agentic Coding">
-<meta property="og:description" content="A tiny desktop IDE built for one job: supervising AI coding agents. Pure Rust, ~10 MB binary, ~40 MB RAM.">
+<meta property="og:description" content="A tiny desktop IDE for supervising AI coding agents — many at once, each in its own folder, across multiple windows. See every file they changed, diff it, roll it back. Pure Rust, ~10 MB binary, ~40 MB RAM.">
 <meta property="og:image" content="assets/screenshot.png">
 <link rel="icon" type="image/png" href="assets/icon-256.png">
 <style>
@@ -209,9 +209,80 @@ h2 { font-size: clamp(1.6rem, 3.5vw, 2rem); font-weight: 750; letter-spacing: -0
   transition: transform 0.25s;
 }
 .feat:hover .icon { transform: scale(1.12) rotate(-4deg); }
-.feat h3 { font-size: 1rem; margin-bottom: 6px; font-weight: 650; }
+.feat h3 { font-size: 1rem; margin-bottom: 6px; font-weight: 650; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .feat p { color: var(--text-dim); font-size: 0.88rem; line-height: 1.6; }
 .feat code { font-family: var(--mono); font-size: 0.82em; background: var(--teal-glow); color: var(--teal); padding: 1px 5px; border-radius: 4px; }
+.feat.new { border-color: rgba(45, 212, 191, 0.32); background: linear-gradient(180deg, rgba(45,212,191,0.06), var(--panel) 62%); }
+
+/* ---------- "new in 0.1.1" badge ---------- */
+.badge {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--teal); background: var(--teal-glow);
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+}
+.badge.warm { color: var(--orange); background: rgba(232,145,45,0.1); border-color: rgba(232,145,45,0.32); }
+h2 .badge { vertical-align: 5px; margin-left: 10px; }
+
+/* ---------- Changes panel mock ---------- */
+.changes-wrap { display: grid; grid-template-columns: 262px 1fr; gap: 16px; align-items: start; }
+.mock {
+  background: #080d17; border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; font-family: var(--mono); font-size: 0.82rem;
+}
+.mock-head {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel); padding: 9px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.76rem;
+}
+.mock-head .count { color: var(--teal); }
+.mock-head .revert {
+  margin-left: auto; color: var(--text-faint); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1px 7px; font-size: 0.8rem; line-height: 1.4;
+}
+.chg-list { padding: 8px 0; }
+.chg {
+  display: flex; align-items: center; gap: 10px; padding: 5px 14px;
+  color: var(--text-dim); cursor: default; transition: background 0.15s, color 0.15s;
+}
+.chg:hover { background: rgba(45,212,191,0.06); color: var(--text); }
+.chg.sel { background: rgba(45,212,191,0.1); color: var(--text); box-shadow: inset 2px 0 0 var(--teal); }
+.st { width: 15px; text-align: center; font-weight: 700; flex-shrink: 0; }
+.st.m { color: var(--orange); } .st.a { color: var(--green); } .st.d { color: #ff6b6b; }
+.chg .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chg .path .dir { color: var(--text-faint); }
+.diff-head {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel); padding: 9px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-size: 0.76rem;
+}
+.diff-head .plus { color: var(--green); } .diff-head .minus { color: #ff6b6b; }
+.diff { padding: 12px 0; overflow-x: auto; line-height: 1.7; }
+.diff .ln { display: block; padding: 0 16px; white-space: pre; }
+.diff .ln.h { color: var(--text-faint); background: rgba(45,212,191,0.05); }
+.diff .ln.p { color: var(--green); background: rgba(158,206,106,0.09); }
+.diff .ln.m { color: #ff8a8a; background: rgba(255,107,107,0.08); }
+.diff .ln.ctx { color: var(--text-dim); }
+.ctxmenu {
+  position: absolute; right: 14px; top: 46px; z-index: 3;
+  background: var(--panel); border: 1px solid var(--border-strong); border-radius: 9px;
+  padding: 5px; font-size: 0.76rem; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  font-family: var(--sans);
+}
+.ctxmenu div { padding: 5px 12px; border-radius: 6px; color: var(--text-dim); white-space: nowrap; }
+.ctxmenu div.hot { background: rgba(255,107,107,0.12); color: #ff8a8a; }
+.mode-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+.mode {
+  flex: 1; min-width: 250px; display: flex; gap: 13px; align-items: flex-start;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+  transition: border-color 0.2s;
+}
+.mode:hover { border-color: var(--teal-dim); }
+.mode .mi { font-size: 1.15rem; line-height: 1.4; }
+.mode h4 { font-size: 0.92rem; font-weight: 650; margin-bottom: 3px; }
+.mode p { color: var(--text-dim); font-size: 0.85rem; line-height: 1.55; }
+.mode code { font-family: var(--mono); font-size: 0.8em; color: var(--teal); }
 
 /* ---------- Terminal blocks ---------- */
 .term {
@@ -240,14 +311,22 @@ h2 { font-size: clamp(1.6rem, 3.5vw, 2rem); font-weight: 750; letter-spacing: -0
 .term .s { color: var(--green); }
 
 /* ---------- Download ---------- */
+.dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
 .dl-hero {
   display: flex; align-items: center; gap: 18px;
   background: linear-gradient(180deg, rgba(45,212,191,0.09), var(--panel) 70%);
   border: 1px solid rgba(45, 212, 191, 0.4); border-radius: var(--radius);
-  padding: 22px 26px; text-decoration: none; margin-bottom: 14px;
+  padding: 22px 26px; text-decoration: none;
   transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 .dl-hero:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(45,212,191,0.12); text-decoration: none; }
+.dl-hero.win {
+  background: linear-gradient(180deg, rgba(232,145,45,0.07), var(--panel) 70%);
+  border-color: rgba(232, 145, 45, 0.34);
+}
+.dl-hero.win:hover { border-color: var(--orange); box-shadow: 0 12px 40px rgba(232,145,45,0.12); }
+.dl-hero.win .dl-icon { background: rgba(232,145,45,0.1); color: var(--orange); }
+.dl-hero .dl-title .badge { margin-left: 7px; }
 .dl-hero .dl-icon {
   width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
   background: var(--teal-glow); color: var(--teal);
@@ -312,11 +391,16 @@ footer .brand { justify-content: center; margin-bottom: 12px; }
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 860px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 860px) {
+  .feat-grid { grid-template-columns: repeat(2, 1fr); }
+  .changes-wrap { grid-template-columns: 1fr; }
+  .dl-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
   section { padding: 56px 0; }
   header { padding-top: 64px; }
   .feat-grid { grid-template-columns: 1fr; }
+  .ctxmenu { display: none; }
   .nav-links a:not(.gh-btn) { display: none; }
   .shot { padding: 36px 0 48px; }
   .stats { gap: 10px; }
@@ -331,6 +415,7 @@ footer .brand { justify-content: center; margin-bottom: 12px; }
     <a href="#" class="brand" style="text-decoration:none"><img src="assets/icon-256.png" alt="Tigriden icon">Tigriden</a>
     <div class="nav-links">
       <a href="#features">Features</a>
+      <a href="#changes">Changes</a>
       <a href="#install">Install</a>
       <a href="#start">Quick start</a>
       <a class="gh-btn" href="https://github.com/Sompote/Tigriden">
@@ -347,18 +432,21 @@ footer .brand { justify-content: center; margin-bottom: 12px; }
   <div class="container">
     <img class="hero-icon hero-in d1" src="assets/icon-256.png" alt="Tigriden app icon — a lion beside a terminal window">
     <h1 class="hero-in d2">Terminal for<br><span class="accent">Agentic Coding</span></h1>
-    <p class="tagline hero-in d3">A tiny desktop IDE built for one job: <strong>supervising AI coding agents</strong> — each in its own folder, side by side.</p>
+    <p class="tagline hero-in d3">A tiny desktop IDE for <strong>supervising AI coding agents</strong> — run as many as you like, each in its own folder, across as many windows as you need. See every file they touch, and roll it back.</p>
     <div class="hero-in d4"><span class="type-chip"><span class="p">$</span> <span id="typed">claude</span><span class="cursor"></span></span></div>
     <div class="cta-row hero-in d5">
-      <a class="btn btn-primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">⬇&#xFE0E;&nbsp; Download for macOS</a>
+      <a class="btn btn-primary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/Tigriden-0.1.1-macos-universal.app.zip">⬇&#xFE0E;&nbsp; Download for macOS</a>
+      <a class="btn btn-secondary" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/tigriden-0.1.1-windows-x86_64.zip">⬇&#xFE0E;&nbsp; Windows</a>
       <a class="btn btn-secondary" href="https://github.com/Sompote/Tigriden">View on GitHub</a>
     </div>
     <div class="hero-meta hero-in d6">
-      <span>v0.1.0</span>
+      <span>v0.1.1</span>
+      <span>macOS · Windows</span>
       <span>Pure Rust</span>
       <span>~10 MB · ~40 MB RAM</span>
       <span>MIT</span>
     </div>
+    <p class="hero-in d6" style="margin-top:18px"><a href="#changes" class="badge">New in 0.1.1 → file change tracking &amp; rollback</a></p>
     <div class="shot hero-in d6">
       <figure>
         <div class="frame">
@@ -376,32 +464,102 @@ footer .brand { justify-content: center; margin-bottom: 12px; }
     <h2 class="reveal">The minimal middle</h2>
     <p class="section-lead reveal">A full IDE is overkill for supervising agents; a bare multiplexer gives you no files and no editor. Tigriden is what's in between: <strong>one window, one session per folder, agent&nbsp;+&nbsp;files&nbsp;+&nbsp;editor together.</strong></p>
     <div class="feat-grid">
+      <div class="feat new reveal"><span class="icon">🔀</span><h3>Change tracking <span class="badge">0.1.1</span></h3><p>A live <strong>Changes (N)</strong> list of every file the agent modified, added, or deleted — with syntax-highlighted diffs and one-click rollback.</p></div>
+      <div class="feat new reveal"><span class="icon">🪟</span><h3>Windows &amp; teams <span class="badge">0.1.1</span></h3><p><code>File ▸ New Window</code> runs independent windows in parallel. Name preset groups as <code>[[teams]]</code> and give each window its own agent buttons.</p></div>
       <div class="feat reveal"><span class="icon">🚀</span><h3>One-click agents</h3><p>Preset buttons launch <code>claude</code>, <code>codex</code>, <code>gemini</code> — or any command — fully configurable.</p></div>
       <div class="feat reveal"><span class="icon">💻</span><h3>Real terminal</h3><p>VTE-compliant emulation with a real PTY. <code>vim</code>, <code>top</code>, and the Claude Code TUI just work — truecolor, mouse selection, image paste.</p></div>
-      <div class="feat reveal"><span class="icon">🌲</span><h3>Live file tree</h3><p>Gitignore-aware, updates as agents create and delete files. Right-click for rename, duplicate, reveal, trash, and more.</p></div>
+      <div class="feat reveal"><span class="icon">🌲</span><h3>Live file tree</h3><p>Gitignore-aware, updates as agents create and delete files. Right-click for new file, rename, duplicate, reveal, trash, and more.</p></div>
       <div class="feat reveal"><span class="icon">✏️</span><h3>Editor &amp; viewers</h3><p>Syntax highlighting for 40+ languages, plus rendered Markdown, images, CSV tables, and PDF text. Auto-reloads when an agent edits the open file.</p></div>
       <div class="feat reveal"><span class="icon">🗂️</span><h3>Parallel sessions</h3><p>Every folder gets its own shell, tree, and open file — plus extra terminal tabs for git or a second agent. Layout restored on relaunch.</p></div>
-      <div class="feat reveal"><span class="icon">🍎</span><h3>Native &amp; tiny</h3><p>Pure Rust, no Electron, no webview. Real macOS menu bar, drag &amp; drop file paths from Finder into the terminal.</p></div>
+      <div class="feat reveal"><span class="icon">📎</span><h3>Drag &amp; drop</h3><p>Drop files from Finder onto the window to paste their paths straight into the agent prompt. Recent folders reopen from the <code>⟳</code> button.</p></div>
+      <div class="feat reveal"><span class="icon">🍎</span><h3>Native &amp; tiny</h3><p>Pure Rust — no Electron, no webview, no C regex libraries. A real macOS menu bar routed to the focused pane.</p></div>
     </div>
   </div>
 </section>
 
-<section id="install">
+<section id="changes">
+  <div class="container">
+    <span class="eyebrow reveal">New in 0.1.1</span>
+    <h2 class="reveal">Know what the agent changed<span class="badge">Changes panel</span></h2>
+    <p class="section-lead reveal">Turn it on with <code class="inline">File ▸ Show Changes Panel</code> and a <strong>Changes (N)</strong> list appears under each folder. Every file the agent touched since the baseline shows up within <strong>~1 second</strong> of the write — click a row for the diff, right-click to throw it away.</p>
+
+    <div class="changes-wrap reveal">
+      <div class="mock" style="position:relative">
+        <div class="mock-head">Changes <span class="count">(4)</span><span class="revert">↺</span></div>
+        <div class="chg-list">
+          <div class="chg sel"><span class="st m">M</span><span class="path"><span class="dir">src/</span>app.rs</span></div>
+          <div class="chg"><span class="st a">A</span><span class="path"><span class="dir">src/</span>git.rs</span></div>
+          <div class="chg"><span class="st m">M</span><span class="path"><span class="dir">ui/</span>sidebar.slint</span></div>
+          <div class="chg"><span class="st d">D</span><span class="path"><span class="dir">src/</span>old_diff.rs</span></div>
+        </div>
+      </div>
+
+      <div class="mock" style="position:relative">
+        <div class="diff-head">src/app.rs <span class="plus">+3</span> <span class="minus">−1</span>
+          <span style="margin-left:auto;color:var(--text-faint)">git · vs HEAD</span>
+        </div>
+        <div class="ctxmenu">
+          <div>Reveal in Finder</div>
+          <div>Copy path</div>
+          <div class="hot">Discard Changes…</div>
+        </div>
+        <div class="diff">
+<span class="ln h">@@ -212,7 +212,9 @@ impl App {</span><span class="ln ctx">     fn on_file_write(&amp;mut self, path: &amp;Path) {</span><span class="ln m">-        self.tree.refresh();</span><span class="ln p">+        self.tree.refresh();</span><span class="ln p">+        // coalesce write bursts over 250 ms, then diff off-thread</span><span class="ln p">+        self.changes.mark_dirty(path);</span><span class="ln ctx">     }</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mode-row">
+      <div class="mode reveal">
+        <span class="mi">🌿</span>
+        <div><h4>Git folders → compared against the last commit</h4>
+        <p>Status runs on a background thread, so a busy agent never stalls the UI.</p></div>
+      </div>
+      <div class="mode reveal">
+        <span class="mi">👻</span>
+        <div><h4>No git? → an invisible shadow snapshot</h4>
+        <p>Kept out of your project in <code>~/Library/Application Support/tigriden/snapshots/</code> — nothing added to the folder.</p></div>
+      </div>
+      <div class="mode reveal">
+        <span class="mi">↺</span>
+        <div><h4>Rollback, one file or all</h4>
+        <p><strong>Discard Changes…</strong> reverts a single file; the <code>↺</code> button reverts everything — both behind a confirmation.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install" class="alt">
   <div class="container">
     <span class="eyebrow reveal">Get started</span>
     <h2 class="reveal">Install</h2>
-    <p class="section-lead reveal">Prebuilt for macOS — no Rust required.</p>
+    <p class="section-lead reveal">Prebuilt for macOS and Windows — no Rust required.</p>
 
-    <a class="dl-hero reveal" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/Tigriden-0.1.0-macos-universal.app.zip">
-      <span class="dl-icon">⬇&#xFE0E;</span>
-      <span>
-        <span class="dl-title">Tigriden.app — Universal</span>
-        <span class="dl-sub">Apple Silicon + Intel · 14.4 MB · unzip, drag to /Applications</span>
-      </span>
-    </a>
-    <p class="dl-alt reveal">Prefer a bare binary? <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-arm64.tar.gz">arm64</a> · <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.0/tigriden-0.1.0-macos-x86_64.tar.gz">x86_64</a> — untar and run <code class="inline">./tigriden</code></p>
-    <p class="install-note reveal">First launch only (not notarized): <strong>right-click → Open → Open</strong>, or
+    <div class="dl-grid">
+      <a class="dl-hero reveal" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/Tigriden-0.1.1-macos-universal.app.zip">
+        <span class="dl-icon">🍎</span>
+        <span>
+          <span class="dl-title">macOS — Universal app</span>
+          <span class="dl-sub">Apple Silicon + Intel · 14.6 MB<br>unzip, drag <strong>Tigriden.app</strong> to /Applications</span>
+        </span>
+      </a>
+      <a class="dl-hero win reveal" href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/tigriden-0.1.1-windows-x86_64.zip">
+        <span class="dl-icon">🪟</span>
+        <span>
+          <span class="dl-title">Windows 64-bit <span class="badge warm">Experimental</span></span>
+          <span class="dl-sub">x86_64 · 6.6 MB<br>unzip and run <strong>tigriden.exe</strong></span>
+        </span>
+      </a>
+    </div>
+
+    <p class="dl-alt reveal">Prefer a bare macOS binary? The release also ships
+      <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/tigriden-0.1.1-macos-arm64.tar.gz">arm64</a> ·
+      <a href="https://github.com/Sompote/Tigriden/releases/download/v0.1.1/tigriden-0.1.1-macos-x86_64.tar.gz">x86_64</a>
+      tarballs — untar and run <code class="inline">./tigriden</code></p>
+    <p class="install-note reveal"><strong>macOS</strong>, first launch only (not notarized): <strong>right-click → Open → Open</strong>, or
     <code class="inline">xattr -d com.apple.quarantine /Applications/Tigriden.app</code></p>
+    <p class="install-note reveal"><strong>Windows</strong> is new in 0.1.1 and untested on real hardware — each terminal launches <code class="inline">cmd.exe</code> (or <code class="inline">%COMSPEC%</code>).
+    <a href="https://github.com/Sompote/Tigriden/issues">Feedback welcome.</a></p>
 
     <details class="src reveal">
       <summary>Build from source</summary>
@@ -419,14 +577,15 @@ cargo build --release
   </div>
 </section>
 
-<section id="start" class="alt">
+<section id="start">
   <div class="container">
     <span class="eyebrow reveal">Workflow</span>
     <h2 class="reveal">Quick start</h2>
     <div class="steps" style="margin-top:32px">
-      <div class="step reveal"><span class="step-num"></span><p><strong>Add a folder</strong> — a login shell opens there. Add more folders to run more agents in parallel.</p></div>
+      <div class="step reveal"><span class="step-num"></span><p><strong>Add a folder</strong> — a login shell opens there. Add more folders to run more agents in parallel, or <strong>File ▸ New Window</strong> for a whole second set.</p></div>
       <div class="step reveal"><span class="step-num"></span><p><strong>Launch an agent</strong> with a preset button, or type any command. The <strong>+</strong> tab opens extra shells in the same folder.</p></div>
       <div class="step reveal"><span class="step-num"></span><p><strong>Watch and steer</strong> — the tree updates as the agent works; click any file to inspect or tweak it without leaving the window.</p></div>
+      <div class="step reveal"><span class="step-num"></span><p><strong>Review and roll back</strong> — the <a href="#changes">Changes panel</a> lists every touched file. Read the diff, keep what works, discard the rest.</p></div>
     </div>
 
     <div class="term reveal" style="margin-top:44px">
@@ -434,16 +593,25 @@ cargo build --release
       <pre><span class="k">theme</span> = <span class="s">"dark"</span>          <span class="c"># "dark" | "light"</span>
 <span class="k">font_family</span> = <span class="s">"Menlo"</span>
 <span class="k">font_size</span> = 13.0
+<span class="k">scrollback</span> = 10000
 
 <span class="c">[[presets]]</span>
 <span class="k">label</span> = <span class="s">"claude"</span>
 <span class="k">command</span> = <span class="s">"claude"</span>
+<span class="k">send_enter</span> = true
+
+<span class="c">[[teams]]</span>              <span class="c"># pick a team per window (0.1.1)</span>
+<span class="k">name</span> = <span class="s">"reviewers"</span>
+<span class="c">[[teams.presets]]</span>
+<span class="k">label</span> = <span class="s">"claude-review"</span>
+<span class="k">command</span> = <span class="s">"claude /review"</span>
 <span class="k">send_enter</span> = true</pre>
     </div>
 
     <div class="stats">
       <div class="stat reveal"><div class="num">~10 MB</div><div class="lbl">binary</div></div>
       <div class="stat reveal"><div class="num">~40 MB</div><div class="lbl">RAM</div></div>
+      <div class="stat reveal"><div class="num">~1 s</div><div class="lbl">to see a change</div></div>
       <div class="stat reveal"><div class="num">40+</div><div class="lbl">languages</div></div>
       <div class="stat reveal"><div class="num">0</div><div class="lbl">webviews</div></div>
     </div>
@@ -455,7 +623,7 @@ cargo build --release
 <footer>
   <div class="container">
     <div class="brand"><img src="assets/icon-256.png" alt="" style="width:28px;height:28px;border-radius:6px">Tigriden</div>
-    <p>MIT License · <a href="https://github.com/Sompote/Tigriden">github.com/Sompote/Tigriden</a></p>
+    <p>v0.1.1 · MIT License · <a href="https://github.com/Sompote/Tigriden">github.com/Sompote/Tigriden</a></p>
   </div>
 </footer>
 
